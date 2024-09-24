@@ -1,0 +1,45 @@
+#!/bin/sh
+
+echo "Foto script begint met scannen folder"
+for original in "$1"/*
+
+do 
+    if [[ -f $original ]]; then
+        filename="${original##*/}"
+        echo "$filename"
+        birth=$(stat -c '%w' "$original")
+        echo "$birth"
+        month=${birth:5:2}
+        year=${birth:0:4}
+        creationDate=${birth:0:10}
+        echo "$creationDate"
+        weekNumber=$(date -d "$creationDate" '+%-V')
+        echo "$weekNumber"
+        yearFolder="$1/$year"
+        folder=""
+        if [[ ! -d $yearFolder ]]; then
+            mkdir "$yearFolder"
+        fi 
+        if [[ $2 == "week" ]]; then
+          folder="$yearFolder/$weekNumber"
+        else
+          folder="$yearFolder/$month"
+        fi
+        if [[ ! -d $folder ]]; then
+            mkdir "$folder"
+        fi 
+        echo "$original"
+        cp "$original" "$folder"
+        OG=$(md5sum "$original")
+        NG=$(md5sum "$folder/$filename")
+        OG=${OG:0:32}
+        NG=${NG:0:32}
+        echo "$OG"
+        echo "$NG"
+        if [[ "$OG" == "$NG" ]]; then
+            rm "$original"
+            echo "Fotos komen overeen, kopie geslaagd."
+        fi 
+        echo "-----------------------------------------"
+    fi
+done
